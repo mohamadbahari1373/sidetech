@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { useApp } from '@/lib/AppContext';
-import { SideTechBannerLogo } from '@/components/SideTechLogo';
-import { CalendarCheck, ShieldCheck, Clock, Award, ChevronDown } from 'lucide-react';
+import { CalendarCheck, ShieldCheck, Award, ChevronDown, CheckCircle2 } from 'lucide-react';
 
 export default function Hero() {
   const { t, lang, openBookingModal } = useApp();
@@ -35,9 +35,35 @@ export default function Hero() {
           {t.heroTitle}
         </h1>
 
-        {/* SideTech High-Quality Logo Banner */}
-        <div className="max-w-xl mx-auto mb-6 transition-transform duration-300 hover:scale-[1.01]">
-          <SideTechBannerLogo variant="card" size="md" />
+        {/* Hero Technician Image replacing logo */}
+        <div className="max-w-2xl mx-auto mb-8 transition-transform duration-300 hover:scale-[1.01]">
+          <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white/80 dark:border-slate-800/80 bg-slate-100 dark:bg-slate-900 group">
+            <div className="relative aspect-[4/3] w-full">
+              <Image
+                src="/images/hero-technician.jpg"
+                alt={lang === 'fa' ? 'تکنسین مجرب ساید تک در حال تعمیر ساید بای ساید' : 'Side Tech certified technician repairing refrigerator'}
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 672px"
+                className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                referrerPolicy="no-referrer"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-black/10 pointer-events-none" />
+              
+              {/* Badge overlay on bottom */}
+              <div className="absolute bottom-4 inset-x-4 flex items-center justify-between pointer-events-none">
+                <div className="px-4 py-2 rounded-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-white/40 dark:border-white/10 shadow-lg flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                    {lang === 'fa' ? 'ساید تک • سرویس تخصصی در محل' : 'Side Tech • On-site Expert Service'}
+                  </span>
+                </div>
+                <div className="hidden sm:inline-flex px-3 py-1.5 rounded-xl bg-blue-600/90 text-white font-medium text-xs backdrop-blur-sm shadow-md">
+                  {lang === 'fa' ? '۱۰۰٪ تضمین کیفیت' : '100% Quality Guaranteed'}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Subtitle */}

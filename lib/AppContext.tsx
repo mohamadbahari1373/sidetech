@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { BookingRequest, User } from './types';
+import { BookingRequest, User, AdminNotification } from './types';
 import { 
   getCurrentUser, 
   setCurrentUser as persistCurrentUser, 
@@ -11,11 +11,16 @@ import {
   updateRequestDetails as persistUpdateDetails,
   getStoredUsers,
   saveUser as persistUser,
+  resetUserPassword as persistResetPassword,
+  getStoredNotifications,
+  addAdminNotification as persistAdminNotification,
+  markNotificationsAsRead as persistMarkNotificationsRead,
   getStoredTheme,
   setStoredTheme,
   getStoredLang,
   setStoredLang,
   ADMIN_PHONE,
+  ADMIN_2_PHONE,
   ADMIN_NAME,
   ADMIN_USERS,
   isUserAdmin
@@ -30,6 +35,7 @@ interface AppContextType {
   t: typeof translations.fa;
   requests: BookingRequest[];
   registeredUsers: User[];
+  notifications: AdminNotification[];
   isAuthModalOpen: boolean;
   isBookingModalOpen: boolean;
   pendingBookingAfterAuth: boolean;
@@ -41,29 +47,44 @@ interface AppContextType {
   closeAuthModal: () => void;
   openBookingModal: (appliance?: 'refrigerator' | 'washing_machine' | 'dishwasher') => void;
   closeBookingModal: () => void;
-  login: (phone: string, password?: string) => { success: boolean; message?: string };
+  login: (phone: string, password?: string) => { success: boolean; message?: string; isWrongPassword?: boolean };
+  resetPasswordAndLogin: (phone: string, newPassword: string) => { success: boolean; message?: string };
   register: (fullName: string, phone: string, password?: string) => { success: boolean; message?: string };
   logout: () => void;
   createBooking: (bookingData: Omit<BookingRequest, 'id' | 'trackingCode' | 'createdAt' | 'status'>) => BookingRequest;
   changeRequestStatus: (id: string, status: BookingRequest['status']) => void;
   updateRequest: (id: string, updates: Partial<BookingRequest>) => void;
   dismissSuccessModal: () => void;
+  markNotificationsRead: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  // Use lazy initializers to read persisted state directly
-  const [user, setUser] = useState<User | null>(() => getCurrentUser());
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => getStoredTheme());
-  const [lang, setLangState] = useState<Language>(() => getStoredLang());
-  const [requests, setRequests] = useState<BookingRequest[]>(() => getStoredRequests());
-  const [registeredUsers, setRegisteredUsers] = useState<User[]>(() => getStoredUsers());
+  // Use stable SSR defaults to prevent React hydration mismatch (#418)
+  const [user, setUser] = useState<User | null>(null);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [lang, setLangState] = useState<Language>('fa');
+  const [requests, setRequests] = useState<BookingRequest[]>([]);
+  const [registeredUsers, setRegisteredUsers] = useState<User[]>([]);
+  const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [pendingBookingAfterAuth, setPendingBookingAfterAuth] = useState(false);
   const [selectedApplianceForBooking, setSelectedApplianceForBooking] = useState<'refrigerator' | 'washing_machine' | 'dishwasher' | null>(null);
   const [lastSuccessRequest, setLastSuccessRequest] = useState<BookingRequest | null>(null);
+
+  // Initialize from storage on client mount
+  useEffect(() => {
+    setUser(getCurrentUser());
+    const storedTheme = getStoredTheme();
+    setTheme(storedTheme);
+    const storedLang = getStoredLang();
+    setLangState(storedLang);
+    setRequests(getStoredRequests());
+    setRegisteredUsers(getStoredUsers());
+    setNotifications(getStoredNotifications());
+  }, []);
 
   // Synchronize document DOM attributes for theme and direction/language
   useEffect(() => {
@@ -133,9 +154,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // Check if logging in as Admin
     if (isUserAdmin(normalizedPhone)) {
       const adminInfo = ADMIN_USERS[normalizedPhone] || { name: ADMIN_NAME, defaultPass: '1381' };
-      if (password && password !== adminInfo.defaultPass && password !== '1381' && password !== '1234') {
+      // Check stored custom password if admin updated it
+      const adminStored = users.find(u => u.phone === normalizedPhone);
+      const validPasswords = [adminStored?.password, adminInfo.defaultPass, '1381', '1234'].filter(Boolean);
+      
+      if (password && !validPasswords.includes(password)) {
         return {
           success: false,
+          isWrongPassword: true,
           message: lang === 'fa' ? 'رمز عبور مدیر صحیح نیست' : 'Incorrect admin password'
         };
       }
@@ -155,6 +181,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (password && found.password && found.password !== password) {
         return { 
           success: false, 
+          isWrongPassword: true,
           message: lang === 'fa' ? 'رمز عبور وارد شده اشتباه است' : 'Incorrect password' 
         };
       }
@@ -166,7 +193,38 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     return { 
       success: false, 
+      isWrongPassword: false,
       message: lang === 'fa' ? 'کاربری با این شماره همراه یافت نشد. لطفا ثبت‌نام کنید.' : 'User not found. Please register.' 
+    };
+  };
+
+  const resetPasswordAndLogin = (phone: string, newPassword: string) => {
+    const normalizedPhone = phone.trim().replace(/^(\+98)/, '0');
+    if (!normalizedPhone || normalizedPhone.length < 10) {
+      return {
+        success: false,
+        message: lang === 'fa' ? 'شماره همراه معتبر نیست' : 'Invalid phone number'
+      };
+    }
+    if (!newPassword || !/^\d+$/.test(newPassword)) {
+      return {
+        success: false,
+        message: lang === 'fa' ? 'رمز عبور جدید باید فقط شامل اعداد باشد' : 'New password must be numeric digits only'
+      };
+    }
+
+    const updatedUser = persistResetPassword(normalizedPhone, newPassword);
+    if (updatedUser) {
+      persistCurrentUser(updatedUser);
+      setUser(updatedUser);
+      setRegisteredUsers(getStoredUsers());
+      onAuthSuccess();
+      return { success: true };
+    }
+
+    return {
+      success: false,
+      message: lang === 'fa' ? 'خطا در ثبت رمز عبور جدید' : 'Error updating password'
     };
   };
 
@@ -211,7 +269,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setLastSuccessRequest(newRequest);
     setIsBookingModalOpen(false);
 
+    // Create and trigger instant notification for admin 09227145583
+    const applianceLabel = 
+      newRequest.applianceType === 'refrigerator' 
+        ? 'یخچال و فریزر' 
+        : newRequest.applianceType === 'washing_machine' 
+        ? 'ماشین لباسشویی' 
+        : 'ماشین ظرفشویی';
+
+    const newNotification: AdminNotification = {
+      id: `notif-${Date.now()}`,
+      recipientPhone: ADMIN_2_PHONE, // 09227145583
+      title: 'درخواست جدید تعمیرات لوازم خانگی ثبت شد',
+      message: `مشتری ${newRequest.fullName} با شماره همراه ${newRequest.phone} درخواستی برای سرویس ${applianceLabel} در تاریخ ${newRequest.jalaliFormatted} ثبت نمودند. لطفاً جهت هماهنگی اعزام تکنسین با ایشان تماس حاصل فرمایید.`,
+      requestTrackingCode: newRequest.trackingCode,
+      customerName: newRequest.fullName,
+      customerPhone: newRequest.phone,
+      applianceType: newRequest.applianceType,
+      createdAt: new Date().toISOString(),
+      read: false,
+    };
+
+    persistAdminNotification(newNotification);
+    setNotifications(getStoredNotifications());
+
     return newRequest;
+  };
+
+  const markNotificationsRead = () => {
+    persistMarkNotificationsRead();
+    setNotifications(getStoredNotifications());
   };
 
   const changeRequestStatus = (id: string, status: BookingRequest['status']) => {
@@ -241,6 +328,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         t,
         requests,
         registeredUsers,
+        notifications,
         isAuthModalOpen,
         isBookingModalOpen,
         pendingBookingAfterAuth,
@@ -253,12 +341,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         openBookingModal,
         closeBookingModal,
         login,
+        resetPasswordAndLogin,
         register,
         logout,
         createBooking,
         changeRequestStatus,
         updateRequest,
         dismissSuccessModal,
+        markNotificationsRead,
       }}
     >
       {children}

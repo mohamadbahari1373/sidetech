@@ -26,7 +26,10 @@ import {
   CheckCircle2,
   XCircle,
   Archive,
-  RotateCcw
+  RotateCcw,
+  Bell,
+  MessageSquareQuote,
+  Radio
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -38,6 +41,8 @@ export default function AdminDashboard({ onBackToHome }: AdminDashboardProps) {
     user, 
     requests, 
     registeredUsers, 
+    notifications,
+    markNotificationsRead,
     changeRequestStatus, 
     updateRequest,
     lang, 
@@ -47,7 +52,7 @@ export default function AdminDashboard({ onBackToHome }: AdminDashboardProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<ApplianceType | 'all'>('all');
   const [statusView, setStatusView] = useState<'active' | 'pending' | 'completed' | 'all'>('active');
-  const [activeTab, setActiveTab] = useState<'requests' | 'users'>('requests');
+  const [activeTab, setActiveTab] = useState<'requests' | 'notifications' | 'users'>('requests');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   // Local state for technician input edits per request
@@ -347,8 +352,8 @@ export default function AdminDashboard({ onBackToHome }: AdminDashboardProps) {
       </div>
 
       {/* Admin Tabs */}
-      <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 pb-4 mb-6">
-        <div className="flex gap-2">
+      <div className="flex flex-wrap items-center justify-between border-b border-slate-200/80 dark:border-slate-800 pb-4 mb-6 gap-3">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setActiveTab('requests')}
             className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
@@ -359,6 +364,27 @@ export default function AdminDashboard({ onBackToHome }: AdminDashboardProps) {
           >
             {t.adminRequestsOverview} ({requests.length})
           </button>
+          
+          <button
+            onClick={() => {
+              setActiveTab('notifications');
+              markNotificationsRead();
+            }}
+            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
+              activeTab === 'notifications'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            <Bell className="w-4 h-4 text-amber-500" />
+            <span>{lang === 'fa' ? 'اعلان‌ها و پیامک‌های ادمین' : 'Admin SMS & Notifications'}</span>
+            {notifications.filter(n => !n.read).length > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-rose-500 text-white font-bold animate-pulse">
+                {notifications.filter(n => !n.read).length}
+              </span>
+            )}
+          </button>
+
           <button
             onClick={() => setActiveTab('users')}
             className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
@@ -398,13 +424,13 @@ export default function AdminDashboard({ onBackToHome }: AdminDashboardProps) {
                 onClick={() => setStatusView('pending')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                   statusView === 'pending'
-                    ? 'bg-amber-500 text-white shadow-sm'
+                    ? 'bg-amber-600 text-white shadow-sm'
                     : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
                 }`}
               >
-                <Clock className="w-3.5 h-3.5" />
-                <span>{lang === 'fa' ? 'در انتظار اعزام' : 'Pending Only'}</span>
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/10 dark:bg-white/20">
+                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                <span>{lang === 'fa' ? 'در انتظار هماهنگی' : 'Pending'}</span>
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">
                   {pendingCount}
                 </span>
               </button>
@@ -418,8 +444,8 @@ export default function AdminDashboard({ onBackToHome }: AdminDashboardProps) {
                     : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
                 }`}
               >
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>{lang === 'fa' ? 'انجام شده‌ها (آرشیو)' : 'Completed'}</span>
+                <CheckCircle className="w-3.5 h-3.5" />
+                <span>{lang === 'fa' ? 'انجام شده‌ها (بایگانی)' : 'Completed Archive'}</span>
                 <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">
                   {completedCount}
                 </span>
@@ -428,13 +454,16 @@ export default function AdminDashboard({ onBackToHome }: AdminDashboardProps) {
               <button
                 type="button"
                 onClick={() => setStatusView('all')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                   statusView === 'all'
                     ? 'bg-slate-700 text-white shadow-sm'
                     : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
                 }`}
               >
-                <span>{lang === 'fa' ? 'همه وضعیت‌ها' : 'All Requests'}</span>
+                <span>{lang === 'fa' ? 'همه' : 'All'}</span>
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">
+                  {requests.length}
+                </span>
               </button>
             </div>
 
@@ -724,6 +753,85 @@ export default function AdminDashboard({ onBackToHome }: AdminDashboardProps) {
             </div>
           )}
         </>
+      ) : activeTab === 'notifications' ? (
+        /* Notifications & SMS Alerts Tab */
+        <div className="rounded-3xl bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl border border-white/60 dark:border-white/10 shadow-sm overflow-hidden p-6">
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100 dark:border-slate-700">
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Bell className="w-5 h-5 text-amber-500" />
+                <span>{lang === 'fa' ? 'اعلان‌ها و هشدارهای پیامکی ادمین' : 'Admin SMS & Notifications'}</span>
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                {lang === 'fa' 
+                  ? 'اعلان‌های لحظه‌ای ارسالی به شماره ادمین (۰۹۲۲۷۱۴۵۵۸۳) به محض ثبت هر درخواست جدید' 
+                  : 'Real-time alerts sent to admin number (09227145583) upon new request bookings'}
+              </p>
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold font-mono" dir="ltr">
+              <Radio className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
+              <span>09227145583 (فعال)</span>
+            </div>
+          </div>
+
+          {notifications.length === 0 ? (
+            <div className="p-12 text-center">
+              <Bell className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-600 mb-3" />
+              <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+                {lang === 'fa' ? 'هنوز اعلانی ثبت نشده است.' : 'No notifications received yet.'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {notifications.map((notif) => (
+                <div
+                  key={notif.id}
+                  className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/40 text-xs text-slate-800 dark:text-slate-200"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                      <span className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm">
+                        {notif.title}
+                      </span>
+                      <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-bold">
+                        {notif.requestTrackingCode}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-slate-400 font-mono" dir="ltr">
+                      {new Date(notif.createdAt).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+
+                  <p className="leading-relaxed text-slate-700 dark:text-slate-300 mb-3">
+                    {notif.message}
+                  </p>
+
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-amber-200/50 dark:border-amber-900/30 text-[11px]">
+                    <div className="flex items-center gap-4">
+                      <span>
+                        <span className="text-slate-500">{lang === 'fa' ? 'مشتری:' : 'Client:'}</span>{' '}
+                        <strong className="text-slate-900 dark:text-white">{notif.customerName}</strong>
+                      </span>
+                      <span>
+                        <span className="text-slate-500">{lang === 'fa' ? 'شماره تماس:' : 'Phone:'}</span>{' '}
+                        <strong className="font-mono text-emerald-600 dark:text-emerald-400" dir="ltr">{notif.customerPhone}</strong>
+                      </span>
+                    </div>
+
+                    <a
+                      href={`tel:${notif.customerPhone}`}
+                      className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-colors"
+                    >
+                      <Phone className="w-3 h-3" />
+                      <span>{lang === 'fa' ? 'تماس جهت هماهنگی' : 'Call Customer'}</span>
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       ) : (
         /* Users List Tab */
         <div className="rounded-3xl bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl border border-white/60 dark:border-white/10 shadow-sm overflow-hidden p-6">

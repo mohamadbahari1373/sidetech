@@ -65,9 +65,24 @@ export default function SuccessModal() {
         <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mb-2">
           {t.successTitle}
         </h3>
-        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed max-w-sm mx-auto">
+        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mb-4 leading-relaxed max-w-sm mx-auto">
           {t.successMsg}
         </p>
+
+        {/* Highlighted Notification Banner */}
+        <div className="mb-6 p-3.5 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs text-right rtl:text-right ltr:text-left flex items-start gap-2.5">
+          <div className="text-lg shrink-0">📞</div>
+          <div className="leading-relaxed">
+            <span className="font-bold block mb-0.5">
+              {lang === 'fa' ? 'اطلاعیه مهم هماهنگی:' : 'Important Coordination Notice:'}
+            </span>
+            <span>
+              {lang === 'fa' 
+                ? 'ادمین سایت جهت هماهنگی ساعت دقیق اعزام تکنسین در اسرع وقت با شماره همراه شما تماس خواهد گرفت.' 
+                : 'Our site administrator will call you shortly to coordinate the exact technician arrival time.'}
+            </span>
+          </div>
+        </div>
 
         {/* Tracking Code Badge with Copy Capability */}
         <div className="p-4 rounded-2xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-800/60 mb-6 relative group">
@@ -116,14 +131,14 @@ export default function SuccessModal() {
 
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-indigo-500 shrink-0" />
-            <span className="font-semibold">{lang === 'fa' ? 'تاریخ مراجعه:' : 'Date:'}</span>
+            <span className="font-semibold">{lang === 'fa' ? 'تاریخ درخواستی:' : 'Requested Date:'}</span>
             <span>{lastSuccessRequest.jalaliFormatted}</span>
           </div>
 
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-purple-500 shrink-0" />
-            <span className="font-semibold">{lang === 'fa' ? 'بازه زمانی:' : 'Time Window:'}</span>
-            <span>{slotLabel}</span>
+            <span className="font-semibold">{lang === 'fa' ? 'ساعت مراجعه:' : 'Arrival Time:'}</span>
+            <span className="text-blue-600 dark:text-blue-400 font-medium">{lang === 'fa' ? 'هماهنگی تلفنی توسط ادمین' : 'Admin phone coordination'}</span>
           </div>
 
           <div className="flex items-start gap-2 pt-1 border-t border-slate-200/50 dark:border-slate-700/50">

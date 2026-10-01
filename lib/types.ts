@@ -18,6 +18,19 @@ export interface User {
 
 export type RequestStatus = 'pending' | 'technician_assigned' | 'completed' | 'cancelled';
 
+export interface AdminNotification {
+  id: string;
+  recipientPhone: string; // e.g. 09227145583
+  title: string;
+  message: string;
+  requestTrackingCode: string;
+  customerName: string;
+  customerPhone: string;
+  applianceType: ApplianceType;
+  createdAt: string;
+  read?: boolean;
+}
+
 export interface BookingRequest {
   id: string;
   trackingCode: string;
@@ -29,7 +42,7 @@ export interface BookingRequest {
   unit: string;
   jalaliDate: string; // e.g. 1403/07/05
   jalaliFormatted: string; // e.g. ۵ مهر ۱۴۰۳
-  timeSlot: TimeSlotId;
+  timeSlot?: TimeSlotId;
   notes?: string;
   technicianName?: string;
   completedAt?: string;

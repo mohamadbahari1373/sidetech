@@ -39,7 +39,6 @@ export default function BookingModal() {
   const [pelak, setPelak] = useState('');
   const [unit, setUnit] = useState('');
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
-  const [timeSlot, setTimeSlot] = useState<TimeSlotId>('morning');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -107,28 +106,9 @@ export default function BookingModal() {
       unit: unit.trim(),
       jalaliDate: currentDay.dateStr,
       jalaliFormatted: currentDay.formatted,
-      timeSlot,
       notes: notes.trim(),
     });
   };
-
-  const timeSlots = [
-    {
-      id: 'morning' as TimeSlotId,
-      label: t.timeSlot1,
-      hours: '10:00 - 13:00',
-    },
-    {
-      id: 'noon' as TimeSlotId,
-      label: t.timeSlot2,
-      hours: '13:00 - 16:00',
-    },
-    {
-      id: 'evening' as TimeSlotId,
-      label: t.timeSlot3,
-      hours: '16:00 - 19:00',
-    },
-  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-md overflow-y-auto">
@@ -361,35 +341,16 @@ export default function BookingModal() {
             </div>
           </div>
 
-          {/* Time Slot Selection (Strictly 3 intervals requested) */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-indigo-500" />
-              <span>{t.selectTimeSlot}</span>
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-              {timeSlots.map((slot) => {
-                const isSelected = timeSlot === slot.id;
-                return (
-                  <button
-                    key={slot.id}
-                    type="button"
-                    onClick={() => setTimeSlot(slot.id)}
-                    className={`py-3 px-3 rounded-2xl border text-center transition-all ${
-                      isSelected
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/25 ring-2 ring-indigo-500/20'
-                        : 'bg-white/60 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-indigo-300'
-                    }`}
-                  >
-                    <div className="text-xs font-extrabold mb-0.5">
-                      {slot.label}
-                    </div>
-                    <div className={`text-[11px] ${isSelected ? 'text-indigo-100' : 'text-slate-400 font-mono'}`}>
-                      {slot.hours}
-                    </div>
-                  </button>
-                );
-              })}
+          {/* Admin Coordination Information Notice */}
+          <div className="p-3.5 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 text-indigo-800 dark:text-indigo-300 text-xs flex items-start gap-2.5">
+            <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+            <div className="leading-relaxed">
+              <span className="font-bold block mb-0.5">
+                {lang === 'fa' ? 'هماهنگی ساعت مراجعه تکنسین:' : 'Technician Arrival Coordination:'}
+              </span>
+              <span>
+                {t.adminCoordinationNotice}
+              </span>
             </div>
           </div>
 

@@ -1,4 +1,4 @@
-import { BookingRequest, User } from './types';
+import { BookingRequest, User, AdminNotification } from './types';
 
 export const ADMIN_PHONE = '09210701381';
 export const ADMIN_NAME = 'محمد بهاری';
@@ -26,6 +26,39 @@ const CURRENT_USER_KEY = 'appliance_repair_curr_user_v1';
 const REQUESTS_KEY = 'appliance_repair_requests_v1';
 const THEME_KEY = 'appliance_repair_theme_v1';
 const LANG_KEY = 'appliance_repair_lang_v1';
+const NOTIFICATIONS_KEY = 'appliance_repair_admin_notifications_v1';
+
+export function getStoredNotifications(): AdminNotification[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const data = localStorage.getItem(NOTIFICATIONS_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function addAdminNotification(notif: AdminNotification): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const list = getStoredNotifications();
+    const updated = [notif, ...list];
+    localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(updated));
+  } catch (e) {
+    console.error('Error saving notification', e);
+  }
+}
+
+export function markNotificationsAsRead(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const list = getStoredNotifications();
+    const updated = list.map(n => ({ ...n, read: true }));
+    localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(updated));
+  } catch (e) {
+    console.error('Error marking notifications as read', e);
+  }
+}
 
 // Seed initial admin and demo requests so the system is immediately fully operational
 const INITIAL_USERS: User[] = [
@@ -117,6 +150,36 @@ export function saveUser(user: User): void {
     localStorage.setItem(USERS_KEY, JSON.stringify(users));
   } catch (e) {
     console.error('Error saving user', e);
+  }
+}
+
+export function resetUserPassword(phone: string, newPassword: string): User | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const users = getStoredUsers();
+    const clean = phone.trim().replace(/^(\+98)/, '0');
+    const existingIndex = users.findIndex(u => u.phone === clean);
+    if (existingIndex >= 0) {
+      users[existingIndex] = { ...users[existingIndex], password: newPassword };
+      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+      return users[existingIndex];
+    } else {
+      // If it's an admin or unpersisted user, create or return
+      const isAdminRole = isUserAdmin(clean);
+      const adminInfo = ADMIN_USERS[clean];
+      const newUser: User = {
+        fullName: adminInfo ? adminInfo.name : 'کاربر گرامی',
+        phone: clean,
+        password: newPassword,
+        isAdmin: isAdminRole,
+      };
+      users.push(newUser);
+      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+      return newUser;
+    }
+  } catch (e) {
+    console.error('Error resetting user password', e);
+    return null;
   }
 }
 
