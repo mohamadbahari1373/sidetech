@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { BookingRequest, User, AdminNotification } from './types';
+import { BookingRequest, User, AdminNotification, BrandItem } from './types';
 import { 
   getCurrentUser, 
   setCurrentUser as persistCurrentUser, 
@@ -15,6 +15,9 @@ import {
   getStoredNotifications,
   addAdminNotification as persistAdminNotification,
   markNotificationsAsRead as persistMarkNotificationsRead,
+  getStoredBrands,
+  saveStoredBrands,
+  resetBrandsToDefault,
   getStoredTheme,
   setStoredTheme,
   getStoredLang,
@@ -36,6 +39,7 @@ interface AppContextType {
   requests: BookingRequest[];
   registeredUsers: User[];
   notifications: AdminNotification[];
+  brands: BrandItem[];
   isAuthModalOpen: boolean;
   isBookingModalOpen: boolean;
   pendingBookingAfterAuth: boolean;
@@ -54,6 +58,10 @@ interface AppContextType {
   createBooking: (bookingData: Omit<BookingRequest, 'id' | 'trackingCode' | 'createdAt' | 'status'>) => BookingRequest;
   changeRequestStatus: (id: string, status: BookingRequest['status']) => void;
   updateRequest: (id: string, updates: Partial<BookingRequest>) => void;
+  updateBrand: (brand: BrandItem) => void;
+  addBrand: (brandData: Omit<BrandItem, 'id' | 'order'>) => void;
+  deleteBrand: (id: string) => void;
+  resetBrands: () => void;
   dismissSuccessModal: () => void;
   markNotificationsRead: () => void;
 }
@@ -61,30 +69,18 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  // Use stable SSR defaults to prevent React hydration mismatch (#418)
-  const [user, setUser] = useState<User | null>(null);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [lang, setLangState] = useState<Language>('fa');
-  const [requests, setRequests] = useState<BookingRequest[]>([]);
-  const [registeredUsers, setRegisteredUsers] = useState<User[]>([]);
-  const [notifications, setNotifications] = useState<AdminNotification[]>([]);
+  const [user, setUser] = useState<User | null>(() => getCurrentUser());
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => getStoredTheme());
+  const [lang, setLangState] = useState<Language>(() => getStoredLang());
+  const [requests, setRequests] = useState<BookingRequest[]>(() => getStoredRequests());
+  const [registeredUsers, setRegisteredUsers] = useState<User[]>(() => getStoredUsers());
+  const [notifications, setNotifications] = useState<AdminNotification[]>(() => getStoredNotifications());
+  const [brands, setBrands] = useState<BrandItem[]>(() => getStoredBrands());
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [pendingBookingAfterAuth, setPendingBookingAfterAuth] = useState(false);
   const [selectedApplianceForBooking, setSelectedApplianceForBooking] = useState<'refrigerator' | 'washing_machine' | 'dishwasher' | null>(null);
   const [lastSuccessRequest, setLastSuccessRequest] = useState<BookingRequest | null>(null);
-
-  // Initialize from storage on client mount
-  useEffect(() => {
-    setUser(getCurrentUser());
-    const storedTheme = getStoredTheme();
-    setTheme(storedTheme);
-    const storedLang = getStoredLang();
-    setLangState(storedLang);
-    setRequests(getStoredRequests());
-    setRegisteredUsers(getStoredUsers());
-    setNotifications(getStoredNotifications());
-  }, []);
 
   // Synchronize document DOM attributes for theme and direction/language
   useEffect(() => {
@@ -311,6 +307,35 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setRequests(getStoredRequests());
   };
 
+  const updateBrand = (updatedBrand: BrandItem) => {
+    const updated = brands.map(b => (b.id === updatedBrand.id ? updatedBrand : b));
+    saveStoredBrands(updated);
+    setBrands(updated);
+  };
+
+  const addBrand = (brandData: Omit<BrandItem, 'id' | 'order'>) => {
+    const newId = `brand-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    const newBrand: BrandItem = {
+      ...brandData,
+      id: newId,
+      order: brands.length + 1,
+    };
+    const updated = [...brands, newBrand];
+    saveStoredBrands(updated);
+    setBrands(updated);
+  };
+
+  const deleteBrand = (id: string) => {
+    const updated = brands.filter(b => b.id !== id);
+    saveStoredBrands(updated);
+    setBrands(updated);
+  };
+
+  const resetBrands = () => {
+    const defaults = resetBrandsToDefault();
+    setBrands(defaults);
+  };
+
   const dismissSuccessModal = () => {
     setLastSuccessRequest(null);
   };
@@ -329,6 +354,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         requests,
         registeredUsers,
         notifications,
+        brands,
         isAuthModalOpen,
         isBookingModalOpen,
         pendingBookingAfterAuth,
@@ -347,6 +373,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         createBooking,
         changeRequestStatus,
         updateRequest,
+        updateBrand,
+        addBrand,
+        deleteBrand,
+        resetBrands,
         dismissSuccessModal,
         markNotificationsRead,
       }}

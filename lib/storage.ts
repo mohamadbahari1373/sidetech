@@ -1,4 +1,4 @@
-import { BookingRequest, User, AdminNotification } from './types';
+import { BookingRequest, User, AdminNotification, BrandItem } from './types';
 
 export const ADMIN_PHONE = '09210701381';
 export const ADMIN_NAME = 'محمد بهاری';
@@ -27,6 +27,198 @@ const REQUESTS_KEY = 'appliance_repair_requests_v1';
 const THEME_KEY = 'appliance_repair_theme_v1';
 const LANG_KEY = 'appliance_repair_lang_v1';
 const NOTIFICATIONS_KEY = 'appliance_repair_admin_notifications_v1';
+const BRANDS_KEY = 'appliance_repair_brands_v1';
+
+export const DEFAULT_BRANDS: BrandItem[] = [
+  {
+    id: 'samsung',
+    nameFa: 'سامسونگ',
+    nameEn: 'SAMSUNG',
+    taglineFa: 'ساید بای ساید و لباسشویی دیجیتال اینورتر',
+    taglineEn: 'Side-by-Side & EcoBubble Digital Inverter',
+    accentColor: 'text-blue-500 dark:text-blue-400',
+    bgGlow: 'group-hover:bg-blue-500/10',
+    borderHover: 'hover:border-blue-500/40',
+    category: 'یخچال • لباسشویی • ظرفشویی',
+    symbolText: 'S',
+    enabled: true,
+    order: 1,
+  },
+  {
+    id: 'lg',
+    nameFa: 'ال‌جی',
+    nameEn: 'LG',
+    taglineFa: 'موتور دایرکت درایو و اینستایو اینورتر',
+    taglineEn: 'DirectDrive & InstaView Inverter',
+    accentColor: 'text-rose-500 dark:text-rose-400',
+    bgGlow: 'group-hover:bg-rose-500/10',
+    borderHover: 'hover:border-rose-500/40',
+    category: 'یخچال • لباسشویی • ظرفشویی',
+    symbolText: 'LG',
+    enabled: true,
+    order: 2,
+  },
+  {
+    id: 'bosch',
+    nameFa: 'بوش',
+    nameEn: 'BOSCH',
+    taglineFa: 'فناوری زئولیت، سری ۸ و اکو سایلنس',
+    taglineEn: 'Zeolith & EcoSilence Drive Series 8',
+    accentColor: 'text-red-500 dark:text-red-400',
+    bgGlow: 'group-hover:bg-red-500/10',
+    borderHover: 'hover:border-red-500/40',
+    category: 'لباسشویی • ظرفشویی • یخچال',
+    symbolText: 'BOSCH',
+    enabled: true,
+    order: 3,
+  },
+  {
+    id: 'whirlpool',
+    nameFa: 'ویرپول',
+    nameEn: 'Whirlpool',
+    taglineFa: 'فناوری حس ششم (6th Sense) آمریکا',
+    taglineEn: '6th Sense Technology USA',
+    accentColor: 'text-amber-500 dark:text-amber-400',
+    bgGlow: 'group-hover:bg-amber-500/10',
+    borderHover: 'hover:border-amber-500/40',
+    category: 'یخچال • لباسشویی • ظرفشویی',
+    symbolText: 'WP',
+    enabled: true,
+    order: 4,
+  },
+  {
+    id: 'ge',
+    nameFa: 'جنرال الکتریک',
+    nameEn: 'General Electric',
+    taglineFa: 'ساید بای سایدهای پیشرفته آمریکایی',
+    taglineEn: 'Profile & Café Series USA',
+    accentColor: 'text-sky-500 dark:text-sky-400',
+    bgGlow: 'group-hover:bg-sky-500/10',
+    borderHover: 'hover:border-sky-500/40',
+    category: 'یخچال ساید • دوقلو',
+    symbolText: 'GE',
+    enabled: true,
+    order: 5,
+  },
+  {
+    id: 'daewoo',
+    nameFa: 'دوو',
+    nameEn: 'DAEWOO',
+    taglineFa: 'نانو سیلور و موتورهای دیجیتال اینورتر',
+    taglineEn: 'Nano Silver & Smart Digital Inverter',
+    accentColor: 'text-teal-500 dark:text-teal-400',
+    bgGlow: 'group-hover:bg-teal-500/10',
+    borderHover: 'hover:border-teal-500/40',
+    category: 'یخچال • لباسشویی • ظرفشویی',
+    symbolText: 'DW',
+    enabled: true,
+    order: 6,
+  },
+  {
+    id: 'siemens',
+    nameFa: 'زیمنس',
+    nameEn: 'SIEMENS',
+    taglineFa: 'مهندسی آلمان و موتورهای بی‌صدا iQdrive',
+    taglineEn: 'German Engineering & iQdrive',
+    accentColor: 'text-cyan-500 dark:text-cyan-400',
+    bgGlow: 'group-hover:bg-cyan-500/10',
+    borderHover: 'hover:border-cyan-500/40',
+    category: 'لباسشویی • ظرفشویی • یخچال',
+    symbolText: 'SIEMENS',
+    enabled: true,
+    order: 7,
+  },
+  {
+    id: 'miele',
+    nameFa: 'میله',
+    nameEn: 'Miele',
+    taglineFa: 'تجهیزات فوق‌پریمیوم خانگی لوکس آلمان',
+    taglineEn: 'Immer Besser • Premium German Quality',
+    accentColor: 'text-amber-600 dark:text-amber-400',
+    bgGlow: 'group-hover:bg-amber-600/10',
+    borderHover: 'hover:border-amber-600/40',
+    category: 'لباسشویی • ظرفشویی پریمیوم',
+    symbolText: 'MIELE',
+    enabled: true,
+    order: 8,
+  },
+  {
+    id: 'electrolux',
+    nameFa: 'الکترولوکس',
+    nameEn: 'Electrolux',
+    taglineFa: 'طراحی سوئدی و بهینه‌سازی حداکثری انرژی',
+    taglineEn: 'Swedish Innovation & EcoCare',
+    accentColor: 'text-indigo-500 dark:text-indigo-400',
+    bgGlow: 'group-hover:bg-indigo-500/10',
+    borderHover: 'hover:border-indigo-500/40',
+    category: 'یخچال • لباسشویی • ظرفشویی',
+    symbolText: 'ELUX',
+    enabled: true,
+    order: 9,
+  },
+  {
+    id: 'indesit',
+    nameFa: 'ایندیزیت',
+    nameEn: 'INDESIT',
+    taglineFa: 'تعمیرات تخصصی قطعات فابریک ایتالیا',
+    taglineEn: 'Life Proof & Smart Cycles Italy',
+    accentColor: 'text-blue-600 dark:text-blue-300',
+    bgGlow: 'group-hover:bg-blue-600/10',
+    borderHover: 'hover:border-blue-600/40',
+    category: 'لباسشویی • یخچال • ظرفشویی',
+    symbolText: 'IND',
+    enabled: true,
+    order: 10,
+  },
+  {
+    id: 'beko',
+    nameFa: 'بکو / آرچلیک',
+    nameEn: 'BEKO / ARÇELİK',
+    taglineFa: 'فناوری ProSmart و HarvestFresh',
+    taglineEn: 'ProSmart Inverter & Dual Cooling',
+    accentColor: 'text-emerald-500 dark:text-emerald-400',
+    bgGlow: 'group-hover:bg-emerald-500/10',
+    borderHover: 'hover:border-emerald-500/40',
+    category: 'یخچال • لباسشویی • ظرفشویی',
+    symbolText: 'BEKO',
+    enabled: true,
+    order: 11,
+  },
+];
+
+export function getStoredBrands(): BrandItem[] {
+  if (typeof window === 'undefined') return DEFAULT_BRANDS;
+  try {
+    const data = localStorage.getItem(BRANDS_KEY);
+    if (!data) {
+      localStorage.setItem(BRANDS_KEY, JSON.stringify(DEFAULT_BRANDS));
+      return DEFAULT_BRANDS;
+    }
+    const parsed = JSON.parse(data);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_BRANDS;
+  } catch {
+    return DEFAULT_BRANDS;
+  }
+}
+
+export function saveStoredBrands(brands: BrandItem[]): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(BRANDS_KEY, JSON.stringify(brands));
+  } catch (e) {
+    console.error('Error saving brands', e);
+  }
+}
+
+export function resetBrandsToDefault(): BrandItem[] {
+  if (typeof window === 'undefined') return DEFAULT_BRANDS;
+  try {
+    localStorage.setItem(BRANDS_KEY, JSON.stringify(DEFAULT_BRANDS));
+    return DEFAULT_BRANDS;
+  } catch {
+    return DEFAULT_BRANDS;
+  }
+}
 
 export function getStoredNotifications(): AdminNotification[] {
   if (typeof window === 'undefined') return [];

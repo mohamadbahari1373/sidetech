@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useApp } from '@/lib/AppContext';
 import { ApplianceType, BookingRequest, RequestStatus } from '@/lib/types';
 import { isUserAdmin } from '@/lib/storage';
+import BrandsManagerTab from './BrandsManagerTab';
 import { 
   Users, 
   Calendar, 
@@ -29,7 +30,8 @@ import {
   RotateCcw,
   Bell,
   MessageSquareQuote,
-  Radio
+  Radio,
+  Tag
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -42,6 +44,7 @@ export default function AdminDashboard({ onBackToHome }: AdminDashboardProps) {
     requests, 
     registeredUsers, 
     notifications,
+    brands,
     markNotificationsRead,
     changeRequestStatus, 
     updateRequest,
@@ -52,7 +55,7 @@ export default function AdminDashboard({ onBackToHome }: AdminDashboardProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<ApplianceType | 'all'>('all');
   const [statusView, setStatusView] = useState<'active' | 'pending' | 'completed' | 'all'>('active');
-  const [activeTab, setActiveTab] = useState<'requests' | 'notifications' | 'users'>('requests');
+  const [activeTab, setActiveTab] = useState<'requests' | 'notifications' | 'users' | 'brands'>('requests');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   // Local state for technician input edits per request
@@ -394,6 +397,21 @@ export default function AdminDashboard({ onBackToHome }: AdminDashboardProps) {
             }`}
           >
             {t.registeredUsersList} ({registeredUsers.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('brands')}
+            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
+              activeTab === 'brands'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            <Tag className="w-4 h-4 text-cyan-400" />
+            <span>{lang === 'fa' ? 'مدیریت برندها و اسلایدر' : 'Brands & Slider Manager'}</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-blue-500/20 text-blue-600 dark:text-blue-300 font-bold">
+              {brands?.length || 0}
+            </span>
           </button>
         </div>
       </div>
@@ -832,7 +850,7 @@ export default function AdminDashboard({ onBackToHome }: AdminDashboardProps) {
             </div>
           )}
         </div>
-      ) : (
+      ) : activeTab === 'users' ? (
         /* Users List Tab */
         <div className="rounded-3xl bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl border border-white/60 dark:border-white/10 shadow-sm overflow-hidden p-6">
           <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4">
@@ -872,6 +890,9 @@ export default function AdminDashboard({ onBackToHome }: AdminDashboardProps) {
             ))}
           </div>
         </div>
+      ) : (
+        /* Brands & Slider Management Tab */
+        <BrandsManagerTab />
       )}
 
     </div>

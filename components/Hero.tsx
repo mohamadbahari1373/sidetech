@@ -36,15 +36,16 @@ export default function Hero() {
         </h1>
 
         {/* Hero Technician Image replacing logo */}
-        <div className="max-w-2xl mx-auto mb-8 transition-transform duration-300 hover:scale-[1.01]">
+        <div className="max-w-3xl mx-auto mb-8 transition-transform duration-300 hover:scale-[1.01]">
           <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white/80 dark:border-slate-800/80 bg-slate-100 dark:bg-slate-900 group">
-            <div className="relative aspect-[4/3] w-full">
+            <div className="relative aspect-[16/9] w-full">
               <Image
                 src="/images/hero-technician.jpg"
-                alt={lang === 'fa' ? 'تکنسین مجرب ساید تک در حال تعمیر ساید بای ساید' : 'Side Tech certified technician repairing refrigerator'}
+                alt={lang === 'fa' ? 'تکنسین متخصص سایدتک در حال تعمیر و سرویس لوازم خانگی' : 'Side Tech certified expert technician servicing home appliances'}
                 fill
                 priority
-                sizes="(max-width: 768px) 100vw, 672px"
+                quality={95}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 768px"
                 className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
                 referrerPolicy="no-referrer"
               />
@@ -55,7 +56,7 @@ export default function Hero() {
                 <div className="px-4 py-2 rounded-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-white/40 dark:border-white/10 shadow-lg flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                   <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
-                    {lang === 'fa' ? 'ساید تک • سرویس تخصصی در محل' : 'Side Tech • On-site Expert Service'}
+                    {lang === 'fa' ? 'سایدتک • سرویس تخصصی و اعزام در محل' : 'Side Tech • On-site Expert Service'}
                   </span>
                 </div>
                 <div className="hidden sm:inline-flex px-3 py-1.5 rounded-xl bg-blue-600/90 text-white font-medium text-xs backdrop-blur-sm shadow-md">

@@ -49,3 +49,20 @@ export interface BookingRequest {
   createdAt: string;
   status: RequestStatus;
 }
+
+export interface BrandItem {
+  id: string;
+  nameFa: string;
+  nameEn: string;
+  taglineFa: string;
+  taglineEn: string;
+  accentColor: string; // e.g. 'text-blue-500' or hex/tailwind
+  bgGlow: string; // e.g. 'group-hover:bg-blue-500/10'
+  borderHover: string; // e.g. 'hover:border-blue-500/40'
+  category?: string;
+  symbolText: string;
+  logoUrl?: string;
+  enabled: boolean;
+  order: number;
+}
+

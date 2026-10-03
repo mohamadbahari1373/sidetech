@@ -18,3 +18,31 @@ body {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
+
+/* Marquee infinite scroll animation */
+[dir="rtl"] .marquee-track {
+  animation: marquee-scroll-rtl 42s linear infinite;
+}
+
+[dir="ltr"] .marquee-track {
+  animation: marquee-scroll-ltr 42s linear infinite;
+}
+
+@keyframes marquee-scroll-rtl {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(50%);
+  }
+}
+
+@keyframes marquee-scroll-ltr {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
